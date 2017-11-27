@@ -39,7 +39,6 @@ captures/
 .idea
 .idea/tasks.xml
 .idea/dictionaries
-.idea/libraries
 
 # Keystore files
 *.jks
@@ -53,6 +52,9 @@ lib/build/
 # Google Services (e.g. APIs or Firebase)
 google-services.json
 google_maps_api.xml
+
+# Fabric
+fabric.xml
 
 # Freeline
 freeline.py
