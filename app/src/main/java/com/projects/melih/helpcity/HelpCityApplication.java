@@ -13,8 +13,16 @@ public class HelpCityApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         if (!BuildConfig.DEBUG) {
             Fabric.with(this, new Crashlytics());
         }
+
+        Timber.plant(new Timber.DebugTree());
+
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            return;
+        }
+        LeakCanary.install(this);
     }
 }
