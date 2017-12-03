@@ -10,7 +10,7 @@ import com.squareup.leakcanary.LeakCanary;
 import timber.log.Timber;
 
 /**
- * Created by melih on 27/11/2017.
+ * Created by melih on 27/11/2017
  */
 
 public class HelpCityApplication extends Application {
