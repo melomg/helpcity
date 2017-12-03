@@ -1,16 +1,19 @@
 package com.projects.melih.helpcity.ui;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 
 import com.google.android.gms.common.api.Status;
@@ -24,12 +27,15 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.projects.melih.helpcity.DataManager;
 import com.projects.melih.helpcity.R;
+import com.projects.melih.helpcity.common.ResourcesUtil;
 import com.projects.melih.helpcity.ui.base.BaseActivity;
 
 import permissions.dispatcher.NeedsPermission;
@@ -41,15 +47,18 @@ import permissions.dispatcher.RuntimePermissions;
  */
 
 @RuntimePermissions
-public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
+public class MapsActivity extends BaseActivity implements View.OnClickListener,
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener {
 
     private static final float DEFAULT_ZOOM = 18f;
+    private static final long ANIMATION_DURATION = 400;
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
     private static final String BUNDLE_LOCATION = "BUNDLE_LOCATION";
 
     private ImageButton buttonFindLocation;
     private MapFragment mapFragment;
     private PlaceAutocompleteFragment autocompleteFragment;
+    private View layoutEmojis;
 
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient = null;
@@ -65,7 +74,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
         final FragmentManager fragmentManager = getFragmentManager();
         mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.map);
         autocompleteFragment = (PlaceAutocompleteFragment) fragmentManager.findFragmentById(R.id.place_autocomplete_fragment);
-        buttonFindLocation = findViewById(R.id.vote);
+        buttonFindLocation = findViewById(R.id.findLocation);
+        layoutEmojis = findViewById(R.id.layoutEmojis);
         snackView = findViewById(R.id.container);
 
         if (savedInstanceState != null) {
@@ -87,12 +97,12 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
                 showSnackBar(getString(R.string.error_get_location));
             }
         });
-        buttonFindLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MapsActivityPermissionsDispatcher.getDeviceLocationWithPermissionCheck(MapsActivity.this);
-            }
-        });
+        buttonFindLocation.setOnClickListener(this);
+        findViewById(R.id.emoji1).setOnClickListener(this);
+        findViewById(R.id.emoji2).setOnClickListener(this);
+        findViewById(R.id.emoji3).setOnClickListener(this);
+        findViewById(R.id.emoji4).setOnClickListener(this);
+        findViewById(R.id.emoji5).setOnClickListener(this);
     }
 
     @Override
@@ -122,6 +132,32 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.findLocation: {
+                MapsActivityPermissionsDispatcher.getDeviceLocationWithPermissionCheck(MapsActivity.this);
+                break;
+            }
+            //TODO anim when selected, take location, rating and send to server
+            case R.id.emoji1: {
+                break;
+            }
+            case R.id.emoji2: {
+                break;
+            }
+            case R.id.emoji3: {
+                break;
+            }
+            case R.id.emoji4: {
+                break;
+            }
+            case R.id.emoji5: {
+                break;
+            }
+        }
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
         buttonFindLocation.setVisibility(View.VISIBLE);
@@ -134,8 +170,20 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
             if (currentLocation != null) {
                 animateAndPutMarker(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), "", "");
             }
-            //googleMap.setOnMarkerClickListener(this);
+            googleMap.setOnMarkerClickListener(this);
+            googleMap.setOnCameraMoveListener(this);
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        makeViewVisibleWithAnim(layoutEmojis);
+        return false;
+    }
+
+    @Override
+    public void onCameraMove() {
+        makeViewGoneWithAnim(layoutEmojis);
     }
 
     @Override
@@ -152,8 +200,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
     @SuppressWarnings("MissingPermission")
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     void getDeviceLocation() {
-        updateLocationUI();
-
         try {
             Task<Location> locationResult = getFusedLocationProviderClient().getLastLocation();
             locationResult.addOnCompleteListener(MapsActivity.this, new OnCompleteListener<Location>() {
@@ -203,35 +249,18 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    //TODO remove this and use your own button for this implementation
-    private void updateLocationUI() {
-        if (googleMap == null) {
-            return;
-        }
-        try {
-            UiSettings settings = googleMap.getUiSettings();
-            if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                googleMap.setMyLocationEnabled(true);
-                settings.setMyLocationButtonEnabled(true);
-            } else {
-                googleMap.setMyLocationEnabled(false);
-                settings.setMyLocationButtonEnabled(false);
-                //lastKnownLocation = null;
-                //getLocationPermission();
-            }
-        } catch (SecurityException e) {
-            showSnackBar(getString(R.string.error_get_location));
-        }
-    }
-
-    //TODO change marker icon
     private void animateAndPutMarker(@NonNull LatLng latLng, @NonNull String title, @NonNull String snippet) {
         googleMap.clear();
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-        googleMap.addMarker(new MarkerOptions()
-                .title(title)
-                .snippet(snippet)
-                .position(latLng));
+        Bitmap bitmap = ResourcesUtil.getBitmap(MapsActivity.this, R.drawable.vote_focussed);
+        if (bitmap != null) {
+            googleMap.addMarker(new MarkerOptions()
+                    .title(title)
+                    .snippet(snippet)
+                    .draggable(true)
+                    .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
+                    .position(latLng));
+        }
     }
 
     @NonNull
@@ -240,5 +269,46 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
         }
         return fusedLocationProviderClient;
+    }
+
+    private void makeViewVisibleWithAnim(@NonNull View view) {
+        if (view.getVisibility() == View.GONE) {
+            view.setVisibility(View.VISIBLE);
+            view.setAlpha(0.0f);
+
+            scaleView(view, .5f, 1f);
+
+            view.animate()
+                    .alpha(1.0f)
+                    .setDuration(ANIMATION_DURATION);
+        }
+    }
+
+    private void makeViewGoneWithAnim(@NonNull final View view) {
+        if (view.getVisibility() == View.VISIBLE) {
+            view.animate()
+                    .alpha(0.0f)
+                    .setDuration(ANIMATION_DURATION)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            view.animate().setListener(null);
+                            view.setVisibility(View.GONE);
+                        }
+                    });
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void scaleView(@NonNull View v, float startScale, float endScale) {
+        Animation anim = new ScaleAnimation(
+                1f, 1f, // Start and end values for the X axis scaling
+                startScale, endScale, // Start and end values for the Y axis scaling
+                Animation.RELATIVE_TO_SELF, 0f, // Pivot point of X scaling
+                Animation.RELATIVE_TO_SELF, 1f); // Pivot point of Y scaling
+        anim.setFillAfter(true); // Needed to keep the result of the animation
+        anim.setDuration(ANIMATION_DURATION);
+        v.startAnimation(anim);
     }
 }
