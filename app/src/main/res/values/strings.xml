@@ -1,3 +1,17 @@
 <resources>
-    <string name="title_activity_maps">Map</string>
+    <!-- GENERAL -->
+    <string name="unknown_error">Unknown Error</string>
+    <string name="pleaseWait">Please Wait…</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="try_again">Try again</string>
+    <string name="missing_info">Missing Info</string>
+    <string name="send">Send</string>
+    <string name="are_you_sure_to_logout">Are you sure to logout?</string>
+    <string name="unconnected_network">Please make sure you are connected to internet!</string>
+
+    <!-- MapsActivity -->
+    <string name="permission_location_title">Location Settings</string>
+    <string name="permission_location_message">Your location settings are closed. Do you want to open it?</string>
+    <string name="error_get_location">Ups, error while getting location!</string>
 </resources>

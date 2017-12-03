@@ -1,0 +1,17 @@
+<resources>
+    <!-- GENERAL -->
+    <string name="unknown_error">Bilinmeyen Hata</string>
+    <string name="pleaseWait">Lütfen bekleyiniz…</string>
+    <string name="ok">Tamam</string>
+    <string name="cancel">İptal</string>
+    <string name="try_again">Tekrar Dene</string>
+    <string name="missing_info">Eksik Bilgi</string>
+    <string name="send">Gönder</string>
+    <string name="are_you_sure_to_logout">Çıkış yapmak istediğinizden emin misiniz?</string>
+    <string name="unconnected_network">Lütfen internete bağlı olduğunuzdan emin olunuz!</string>
+
+    <!-- MapsActivity -->
+    <string name="permission_location_title">Konum Ayarları</string>
+    <string name="permission_location_message">Konum ayarlarınız kapalı açmak ister misiniz?</string>
+    <string name="error_get_location">Hops, Konum alınırken bir hata oluştu!</string>
+</resources>
