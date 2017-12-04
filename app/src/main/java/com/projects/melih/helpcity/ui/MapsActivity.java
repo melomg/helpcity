@@ -11,8 +11,10 @@ import android.location.Location;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
+import android.view.animation.OvershootInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 
@@ -36,6 +38,7 @@ import com.google.android.gms.tasks.Task;
 import com.projects.melih.helpcity.DataManager;
 import com.projects.melih.helpcity.R;
 import com.projects.melih.helpcity.common.ResourcesUtil;
+import com.projects.melih.helpcity.model.Vote;
 import com.projects.melih.helpcity.ui.base.BaseActivity;
 
 import permissions.dispatcher.NeedsPermission;
@@ -47,7 +50,7 @@ import permissions.dispatcher.RuntimePermissions;
  */
 
 @RuntimePermissions
-public class MapsActivity extends BaseActivity implements View.OnClickListener,
+public class MapsActivity extends BaseActivity implements View.OnTouchListener,
         OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener {
 
     private static final float DEFAULT_ZOOM = 18f;
@@ -59,6 +62,11 @@ public class MapsActivity extends BaseActivity implements View.OnClickListener,
     private MapFragment mapFragment;
     private PlaceAutocompleteFragment autocompleteFragment;
     private View layoutEmojis;
+    private View emoji1;
+    private View emoji2;
+    private View emoji3;
+    private View emoji4;
+    private View emoji5;
 
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient = null;
@@ -77,6 +85,11 @@ public class MapsActivity extends BaseActivity implements View.OnClickListener,
         buttonFindLocation = findViewById(R.id.findLocation);
         layoutEmojis = findViewById(R.id.layoutEmojis);
         snackView = findViewById(R.id.container);
+        emoji1 = findViewById(R.id.emoji1);
+        emoji2 = findViewById(R.id.emoji2);
+        emoji3 = findViewById(R.id.emoji3);
+        emoji4 = findViewById(R.id.emoji4);
+        emoji5 = findViewById(R.id.emoji5);
 
         if (savedInstanceState != null) {
             currentLocation = savedInstanceState.getParcelable(BUNDLE_LOCATION);
@@ -97,12 +110,17 @@ public class MapsActivity extends BaseActivity implements View.OnClickListener,
                 showSnackBar(getString(R.string.error_get_location));
             }
         });
-        buttonFindLocation.setOnClickListener(this);
-        findViewById(R.id.emoji1).setOnClickListener(this);
-        findViewById(R.id.emoji2).setOnClickListener(this);
-        findViewById(R.id.emoji3).setOnClickListener(this);
-        findViewById(R.id.emoji4).setOnClickListener(this);
-        findViewById(R.id.emoji5).setOnClickListener(this);
+        buttonFindLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MapsActivityPermissionsDispatcher.getDeviceLocationWithPermissionCheck(MapsActivity.this);
+            }
+        });
+        emoji1.setOnTouchListener(this);
+        emoji2.setOnTouchListener(this);
+        emoji3.setOnTouchListener(this);
+        emoji4.setOnTouchListener(this);
+        emoji5.setOnTouchListener(this);
     }
 
     @Override
@@ -132,29 +150,40 @@ public class MapsActivity extends BaseActivity implements View.OnClickListener,
     }
 
     @Override
-    public void onClick(View v) {
+    public boolean onTouch(View v, MotionEvent event) {
+        int rating;
         switch (v.getId()) {
-            case R.id.findLocation: {
-                MapsActivityPermissionsDispatcher.getDeviceLocationWithPermissionCheck(MapsActivity.this);
-                break;
-            }
-            //TODO anim when selected, take location, rating and send to server
             case R.id.emoji1: {
+                rating = Vote.VoteType.EXTREME_SAD;
+                animateViewWhenPressed(emoji1);
                 break;
             }
             case R.id.emoji2: {
+                rating = Vote.VoteType.SAD;
+                animateViewWhenPressed(emoji2);
                 break;
             }
             case R.id.emoji3: {
+                rating = Vote.VoteType.NORMAL;
+                animateViewWhenPressed(emoji3);
                 break;
             }
             case R.id.emoji4: {
+                rating = Vote.VoteType.HAPPY;
+                animateViewWhenPressed(emoji4);
                 break;
             }
             case R.id.emoji5: {
+                rating = Vote.VoteType.EXTREME_HAPPY;
+                animateViewWhenPressed(emoji5);
                 break;
             }
         }
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            makeViewGoneWithAnim(layoutEmojis);
+            //TODO take location, rating and send to server
+        }
+        return true;
     }
 
     @Override
@@ -310,5 +339,22 @@ public class MapsActivity extends BaseActivity implements View.OnClickListener,
         anim.setFillAfter(true); // Needed to keep the result of the animation
         anim.setDuration(ANIMATION_DURATION);
         v.startAnimation(anim);
+    }
+
+    private void animateViewWhenPressed(View view) {
+        ScaleAnimation scaleAnimation = new ScaleAnimation(1f, 1.2f, 1f, 1.2f, Animation.RELATIVE_TO_SELF, (float) 0.5, Animation.RELATIVE_TO_SELF, (float) 0.5);
+        scaleAnimation.setFillAfter(true);
+        scaleAnimation.setFillEnabled(true);
+        scaleAnimation.setRepeatCount(1);
+        scaleAnimation.setDuration(200);
+        scaleAnimation.setInterpolator(new OvershootInterpolator(6f));
+        view.startAnimation(scaleAnimation);
+
+        scaleAnimation = new ScaleAnimation(1.2f, 1f, 1.2f, 1f, Animation.RELATIVE_TO_SELF, (float) 0.5, Animation.RELATIVE_TO_SELF, (float) 0.5);
+        scaleAnimation.setFillAfter(true);
+        scaleAnimation.setFillEnabled(true);
+        scaleAnimation.setRepeatCount(1);
+        scaleAnimation.setDuration(200);
+        view.startAnimation(scaleAnimation);
     }
 }

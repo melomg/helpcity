@@ -30,9 +30,9 @@ public class HelpCityApplication extends Application {
         }
         super.onCreate();
 
-        //if (!BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG) {
             Fabric.with(this, new Crashlytics());
-        //}
+        }
 
         Timber.plant(new Timber.DebugTree());
 
