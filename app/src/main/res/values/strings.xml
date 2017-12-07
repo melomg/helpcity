@@ -14,4 +14,11 @@
     <string name="permission_location_title">Location Settings</string>
     <string name="permission_location_message">Your location settings are closed. Do you want to open it?</string>
     <string name="error_get_location">Ups, error while getting location!</string>
+
+    <!-- Login Activity -->
+    <string name="firebaseui_title_text">FirebaseUI Auth</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="sign_in_failed">Sign In Failed</string>
+    <string name="logout">Logout</string>
 </resources>

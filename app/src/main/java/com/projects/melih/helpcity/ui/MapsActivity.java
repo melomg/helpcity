@@ -3,7 +3,9 @@ package com.projects.melih.helpcity.ui;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -11,6 +13,10 @@ import android.location.Location;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
@@ -18,6 +24,7 @@ import android.view.animation.OvershootInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -73,11 +80,14 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
     private Location lastKnownLocation;
     private Location currentLocation;
 
+    public static Intent newIntent(Context context) {
+        return new Intent(context, MapsActivity.class);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
 
         final FragmentManager fragmentManager = getFragmentManager();
         mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.map);
@@ -140,7 +150,6 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
         MapsActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         if (googleMap != null) {
@@ -149,6 +158,27 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.logout: {
+                logout();
+                return true;
+            }
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int rating;
@@ -356,5 +386,25 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
         scaleAnimation.setRepeatCount(1);
         scaleAnimation.setDuration(200);
         view.startAnimation(scaleAnimation);
+    }
+
+    private void logout() {
+        new AlertDialog.Builder(MapsActivity.this).setMessage(R.string.are_you_sure_to_logout)
+                .setCancelable(false)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        AuthUI.getInstance().signOut(MapsActivity.this);
+                        startActivity(LoginActivity.newIntent(MapsActivity.this));
+                        finish();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .show();
     }
 }

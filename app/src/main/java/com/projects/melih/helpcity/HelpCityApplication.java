@@ -5,6 +5,8 @@ import android.os.StrictMode;
 
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
+
+import com.google.firebase.FirebaseApp;
 import com.squareup.leakcanary.LeakCanary;
 
 import timber.log.Timber;
@@ -29,6 +31,8 @@ public class HelpCityApplication extends Application {
                     .build());
         }
         super.onCreate();
+
+        FirebaseApp.initializeApp(this);
 
         if (!BuildConfig.DEBUG) {
             Fabric.with(this, new Crashlytics());
