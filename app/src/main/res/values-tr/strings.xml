@@ -14,4 +14,11 @@
     <string name="permission_location_title">Konum Ayarları</string>
     <string name="permission_location_message">Konum ayarlarınız kapalı açmak ister misiniz?</string>
     <string name="error_get_location">Hops, Konum alınırken bir hata oluştu!</string>
+
+    <!-- Login Activity -->
+    <string name="firebaseui_title_text">FirebaseUI Auth</string>
+    <string name="sign_in">Giriş Yap</string>
+    <string name="sign_out">Çıkış</string>
+    <string name="sign_in_failed">Giriş yapılamadı…</string>
+    <string name="logout">Çıkış</string>
 </resources>

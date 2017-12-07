@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.8"
+        android:background="@drawable/ic_signin"
+        android:contentDescription="@null"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/signIn"
+        android:layout_centerInParent="true"
+        android:layout_margin="@dimen/medium_size"
+        android:contentDescription="@null"
+        android:src="@drawable/firebase_lockup_400"/>
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/signIn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_margin="@dimen/large_size"
+        android:layout_marginBottom="50dp"
+        android:text="@string/sign_in"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="4dp"
+        android:text="Photo by Stephen Monroe on Unsplash"
+        android:textSize="10sp"
+        tools:ignore="HardcodedText,SmallSp"/>
+</RelativeLayout>
