@@ -43,6 +43,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.projects.melih.helpcity.DataManager;
+import com.projects.melih.helpcity.FirebaseDatabaseHelper;
 import com.projects.melih.helpcity.R;
 import com.projects.melih.helpcity.common.ResourcesUtil;
 import com.projects.melih.helpcity.model.Vote;
@@ -78,7 +79,7 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient = null;
     private Location lastKnownLocation;
-    private Location currentLocation;
+    private DataManager dataManager;
 
     public static Intent newIntent(Context context) {
         return new Intent(context, MapsActivity.class);
@@ -101,8 +102,9 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
         emoji4 = findViewById(R.id.emoji4);
         emoji5 = findViewById(R.id.emoji5);
 
+        dataManager = DataManager.getInstance(MapsActivity.this);
         if (savedInstanceState != null) {
-            currentLocation = savedInstanceState.getParcelable(BUNDLE_LOCATION);
+            lastKnownLocation = savedInstanceState.getParcelable(BUNDLE_LOCATION);
         }
         mapFragment.getMapAsync(this);
 
@@ -208,10 +210,15 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
                 animateViewWhenPressed(emoji5);
                 break;
             }
+            default: {
+                rating = Vote.VoteType.NOT_VOTED;
+                break;
+            }
         }
-        if (event.getAction() == MotionEvent.ACTION_UP) {
+        if ((event.getAction() == MotionEvent.ACTION_UP) && (rating != Vote.VoteType.NOT_VOTED) && (layoutEmojis.getVisibility() == View.VISIBLE)) {
             makeViewGoneWithAnim(layoutEmojis);
-            //TODO take location, rating and send to server
+            FirebaseDatabaseHelper.getInstance().sendLocationVote(new Vote(rating, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()));
+            animateAndPutMarker(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()), "", "", rating);
         }
         return true;
     }
@@ -226,8 +233,8 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
             settings.setCompassEnabled(true);
             settings.setZoomGesturesEnabled(true);
 
-            if (currentLocation != null) {
-                animateAndPutMarker(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), "", "");
+            if (lastKnownLocation != null) {
+                animateAndPutMarker(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()), "", "");
             }
             googleMap.setOnMarkerClickListener(this);
             googleMap.setOnCameraMoveListener(this);
@@ -245,17 +252,6 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
         makeViewGoneWithAnim(layoutEmojis);
     }
 
-    @Override
-    public void onDestroy() {
-        getFragmentManager().beginTransaction()
-                .remove(mapFragment)
-                .commitAllowingStateLoss();
-        getFragmentManager().beginTransaction()
-                .remove(autocompleteFragment)
-                .commitAllowingStateLoss();
-        super.onDestroy();
-    }
-
     @SuppressWarnings("MissingPermission")
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     void getDeviceLocation() {
@@ -268,9 +264,9 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
                         lastKnownLocation = (Location) task.getResult();
                     }
                     if (lastKnownLocation != null) {
-                        DataManager.getInstance(MapsActivity.this).saveLastLocation(lastKnownLocation);
+                        dataManager.saveLastLocation(lastKnownLocation);
                     } else {
-                        lastKnownLocation = DataManager.getInstance(MapsActivity.this).getLastLocation();
+                        lastKnownLocation = dataManager.getLastLocation();
                         googleMap.getUiSettings().setMyLocationButtonEnabled(false);
                     }
                     if (lastKnownLocation != null) {
@@ -309,9 +305,13 @@ public class MapsActivity extends BaseActivity implements View.OnTouchListener,
     }
 
     private void animateAndPutMarker(@NonNull LatLng latLng, @NonNull String title, @NonNull String snippet) {
+        animateAndPutMarker(latLng, title, snippet, Vote.VoteType.NOT_VOTED);
+    }
+
+    private void animateAndPutMarker(@NonNull LatLng latLng, @NonNull String title, @NonNull String snippet, int rating) {
         googleMap.clear();
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-        Bitmap bitmap = ResourcesUtil.getBitmap(MapsActivity.this, R.drawable.vote_focussed);
+        Bitmap bitmap = ResourcesUtil.getBitmap(MapsActivity.this, Vote.getMarkerPinDrawable(rating));
         if (bitmap != null) {
             googleMap.addMarker(new MarkerOptions()
                     .title(title)

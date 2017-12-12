@@ -8,21 +8,31 @@ import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.Marker;
+import com.google.firebase.database.Exclude;
+import com.projects.melih.helpcity.FirebaseDatabaseHelper;
 import com.projects.melih.helpcity.R;
+import com.projects.melih.helpcity.common.DateUtil;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by melih on 4.12.2017.
  */
 
 public class Vote implements Parcelable {
+
     public boolean isAdded;
 
     private BitmapDescriptor markerPin;
 
     private String address;
+
+    private String voteId;
 
     private double latitude;
 
@@ -32,14 +42,28 @@ public class Vote implements Parcelable {
 
     private Marker marker;
 
+    private String date;
+
+    private String uid;
+
     public BitmapDescriptor getMarkerPin() {
         return markerPin;
     }
 
+    public Vote(int voteType, double latitude, double longitude) {
+        this.uid = FirebaseDatabaseHelper.getInstance().getUser().getUid();
+
+        NumberFormat formatter = new DecimalFormat("#000.0000000");
+        this.voteId = formatter.format(latitude).concat(formatter.format(longitude)).replaceAll("\\.", "").concat(uid);
+        this.voteType = voteType;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.date = DateUtil.getCurrentDate();
+    }
+
     @DrawableRes
-    public int getMarkerPinDrawable() {
-        @VoteType.ID int id = voteType;
-        switch (id) {
+    public static int getMarkerPinDrawable(@VoteType.ID int rating) {
+        switch (rating) {
             case VoteType.EXTREME_HAPPY: {
                 return R.drawable.emoji5;
             }
@@ -55,14 +79,19 @@ public class Vote implements Parcelable {
             case VoteType.EXTREME_SAD: {
                 return R.drawable.emoji1;
             }
+            case VoteType.NOT_VOTED:
             default: {
-                return R.drawable.emoji3;
+                return R.drawable.vote_focussed;
             }
         }
     }
 
     public void setMarkerPin(@NonNull BitmapDescriptor bitmapDescriptor) {
         markerPin = bitmapDescriptor;
+    }
+
+    public String getDate() {
+        return date;
     }
 
     public int getVoteType() {
@@ -85,8 +114,16 @@ public class Vote implements Parcelable {
         return marker;
     }
 
+    public String getUid() {
+        return uid;
+    }
+
     public void setMarker(Marker marker) {
         this.marker = marker;
+    }
+
+    public String getVoteId() {
+        return voteId;
     }
 
     @Override
@@ -96,14 +133,20 @@ public class Vote implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.voteId);
+        dest.writeString(this.date);
         dest.writeString(this.address);
+        dest.writeString(this.uid);
         dest.writeDouble(this.latitude);
         dest.writeDouble(this.longitude);
         dest.writeInt(this.voteType);
     }
 
     protected Vote(Parcel in) {
+        this.voteId = in.readString();
+        this.date = in.readString();
         this.address = in.readString();
+        this.uid = in.readString();
         this.latitude = in.readDouble();
         this.longitude = in.readDouble();
         this.voteType = in.readInt();
@@ -122,6 +165,7 @@ public class Vote implements Parcelable {
     };
 
     public @interface VoteType {
+        int NOT_VOTED = -1;
         int EXTREME_SAD = 0;
         int SAD = EXTREME_SAD + 1;
         int NORMAL = SAD + 1;
@@ -130,6 +174,7 @@ public class Vote implements Parcelable {
 
         @Retention(RetentionPolicy.SOURCE)
         @IntDef({
+                NOT_VOTED,
                 EXTREME_SAD,
                 SAD,
                 NORMAL,
@@ -138,5 +183,17 @@ public class Vote implements Parcelable {
         })
         @interface ID {
         }
+    }
+
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("voteId", voteId);
+        result.put("uid", uid);
+        result.put("latitude", latitude);
+        result.put("longitude", longitude);
+        result.put("voteType", voteType);
+        result.put("date", date);
+        return result;
     }
 }
