@@ -10,7 +10,7 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 
 /**
- * Created by melih on 3.12.2017.
+ * Created by melih on 3.12.2017
  */
 
 public class DataManager {
@@ -24,7 +24,6 @@ public class DataManager {
     private DataManager(@NonNull Context context) {
         this.context = context;
         sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-
     }
 
     public static DataManager getInstance(@NonNull Context context) {
